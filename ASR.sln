@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR", "ASR\ASR.csproj", "{FE0CFBD4-F7BD-4FB7-99E6-8BE419AE86CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR.Core", "ASR.Core\ASR.Core.csproj", "{7FA9007A-FF98-43EF-8FF3-6A7828D01EA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR.Core.Amiga", "ASR.Core.Amiga\ASR.Core.Amiga.csproj", "{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FE0CFBD4-F7BD-4FB7-99E6-8BE419AE86CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE0CFBD4-F7BD-4FB7-99E6-8BE419AE86CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE0CFBD4-F7BD-4FB7-99E6-8BE419AE86CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE0CFBD4-F7BD-4FB7-99E6-8BE419AE86CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FA9007A-FF98-43EF-8FF3-6A7828D01EA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FA9007A-FF98-43EF-8FF3-6A7828D01EA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FA9007A-FF98-43EF-8FF3-6A7828D01EA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FA9007A-FF98-43EF-8FF3-6A7828D01EA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
