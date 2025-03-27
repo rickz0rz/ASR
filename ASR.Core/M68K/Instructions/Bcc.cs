@@ -24,7 +24,10 @@ public class Bcc : BaseInstruction
 
         switch (condition)
         {
-            case 0b0111:
+            case 0b0000: // BRA
+                context.ProgramCounter += (uint)displacement;
+                break;
+            case 0b0111: // BEQ
                 if (context.ZFlag)
                 {
                     context.ProgramCounter += (uint)displacement;

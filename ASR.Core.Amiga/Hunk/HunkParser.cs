@@ -35,13 +35,11 @@ public class HunkParser
         }
 
         var inHunkLoop = true;
+        var currentSectionIndex = 0;
         do
         {
             var sectionType = ConvertBytesToInt(fileData.Skip(offset).Take(4));
             offset += 4;
-
-            // var hunkSectionSize = ConvertBytesToInt(fileData.Skip(offset).Take(4)) * 4;
-            // offset += 4;
 
             var hunkSection = new HunkSection
             {
@@ -49,7 +47,7 @@ public class HunkParser
                 SectionMemoryFlag = sectionType >> 29
             };
 
-            switch (sectionType)
+            switch (hunkSection.SectionType)
             {
                 case 0x3E9:
                 case 0x3EA:
@@ -58,16 +56,13 @@ public class HunkParser
                     hunkSection.Data = fileData.Skip(offset).Take(numberOfLongWords).ToList();
                     offset += numberOfLongWords;
                     break;
-                // Commenting this out until I can figure out how I want this to look.
-                /*
                 case 0x3EC:
-                    // hunk_reloc32 - Relocation tables.
                     while (true)
                     {
-                        var numberOfRelocationEntries = ConvertBytesToInt(fileData.Skip(offset).Take(4));
+                        var numberOfOffsets = ConvertBytesToInt(fileData.Skip(offset).Take(4));
                         offset += 4;
 
-                        if (numberOfRelocationEntries == 0)
+                        if (numberOfOffsets == 0)
                         {
                             break;
                         }
@@ -75,18 +70,17 @@ public class HunkParser
                         var relocationSectionId = ConvertBytesToInt(fileData.Skip(offset).Take(4));
                         offset += 4;
 
-                        var relocationAddresses = new List<int>();
+                        var relocationAddresses = new List<uint>();
 
-                        for (var i = 0; i < numberOfRelocationEntries; i++)
+                        for (var i = 0; i < numberOfOffsets; i++)
                         {
-                            relocationAddresses.Add(ConvertBytesToInt(fileData.Skip(offset).Take(4)));
+                            relocationAddresses.Add((uint)ConvertBytesToInt(fileData.Skip(offset).Take(4)));
                             offset += 4;
                         }
 
-                        hunkSection.RelocationTables.Add(relocationSectionId, relocationAddresses);
+                        hunk.RELOC32Relocations.Add((currentSectionIndex, relocationSectionId), relocationAddresses);
                     }
                     break;
-                */
                 case 0x3F0:
                     // HUNK_SYMBOL
                     // just cheat and read this until it's zero.
@@ -98,7 +92,11 @@ public class HunkParser
                     }
                     break;
                 case 0x3F2:
-                    inHunkLoop = false;
+                    currentSectionIndex++;
+                    if (currentSectionIndex >= numberOfSections)
+                    {
+                        inHunkLoop = false;
+                    }
                     break;
                 case 0x3F7:
                     // hunk_drel32 - More relocation tables.
@@ -124,7 +122,7 @@ public class HunkParser
                             listOfAddresses.Add((uint)g);
                         }
 
-                        hunk.RelocationMaps.Add(sectionNumber, (baseAddress, listOfAddresses));
+                        hunk.DREL32Relocations.Add(sectionNumber, (baseAddress, listOfAddresses));
                     }
                 }
                     break;

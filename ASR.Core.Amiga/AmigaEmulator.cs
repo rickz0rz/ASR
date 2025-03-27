@@ -17,9 +17,9 @@ public class AmigaEmulator : Emulator
         // Load the hunks into memory
         for (var hsi = 0; hsi < hunk.HunkSections.Count; hsi++)
         {
-            if (hunk.RelocationMaps.ContainsKey(hsi))
+            if (hunk.DREL32Relocations.ContainsKey(hsi))
             {
-                hunkStartingAddress = (uint)hunk.RelocationMaps[hsi].offset;
+                hunkStartingAddress = (uint)hunk.DREL32Relocations[hsi].offset;
             }
 
             hunkSectionAddressMap.Add(hsi, hunkStartingAddress);
@@ -35,18 +35,18 @@ public class AmigaEmulator : Emulator
         // Adjust the memory locations from the relocation tables.
         for (var hsi = 0; hsi < hunk.HunkSections.Count; hsi++)
         {
-            if (!hunk.RelocationMaps.ContainsKey(hsi))
+            if (!hunk.DREL32Relocations.ContainsKey(hsi))
                 continue;
 
-            foreach (var addr in hunk.RelocationMaps[hsi].addresses)
+            foreach (var addr in hunk.DREL32Relocations[hsi].addresses)
             {
-                var address = addr + hunk.RelocationMaps[hsi].offset;
+                var address = addr + hunk.DREL32Relocations[hsi].offset;
 
                 // Read byte.
                 var v = ReadLongFromMemoryAddress((uint)address);
 
                 // Add the offset.
-                v += (uint)hunk.RelocationMaps[hsi].offset;
+                v += (uint)hunk.DREL32Relocations[hsi].offset;
 
                 // Write the bytes back.
                 WriteLongToMemoryAddress((uint)address, v);

@@ -10,7 +10,8 @@ public class HunkFile
     public int LastHunkSection { get; set; }
     public List<int> HunkSectionSizes { get; set; } // These may not reflect the actual hunks' sizes.. pad with zeros. Is this even necessary?
     public List<HunkSection> HunkSections { get; set; }
-    public  Dictionary<int, (int offset, List<uint> addresses)> RelocationMaps { get; set; }
+    public Dictionary<(int sectionId, int relocationSectionId), List<uint>> RELOC32Relocations { get; set; } // 0x3EC
+    public Dictionary<int, (int offset, List<uint> addresses)> DREL32Relocations { get; set; } // 0x3F7
 
     public HunkFile()
     {
@@ -19,6 +20,7 @@ public class HunkFile
         Labels = new Dictionary<SectionAddress, string>();
         HunkSectionSizes = new List<int>();
         HunkSections = new List<HunkSection>();
-        RelocationMaps = new Dictionary<int, (int, List<uint>)>();
+        RELOC32Relocations = new Dictionary<(int sectionId, int relocationSectionId), List<uint>>();
+        DREL32Relocations = new Dictionary<int, (int, List<uint>)>();
     }
 }

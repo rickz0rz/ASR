@@ -35,9 +35,14 @@ public class Emulator
         {
             try
             {
-                // Console.Write($"{Context.ProgramCounter:X6}");
+                if (EmulatorConfiguration.DebugPrint)
+                    Console.Write($"{Context.ProgramCounter:X6}");
+
                 var opcode = ReadOpcode();
-                // Console.Write($" -> {opcode:X4}");
+
+                if (EmulatorConfiguration.DebugPrint)
+                    Console.Write($" -> {opcode:X4}");
+
                 var instruction = InstructionCache.GetInstruction(Context, opcode);
                 if (instruction == null)
                 {
@@ -45,7 +50,9 @@ public class Emulator
                 }
                 else
                 {
-                    // Console.WriteLine($" ({instruction.GetType()})");
+                    if (EmulatorConfiguration.DebugPrint)
+                        Console.WriteLine($" ({instruction.GetType()})");
+
                     if (!instruction.Execute(opcode, Context))
                     {
                         break;
