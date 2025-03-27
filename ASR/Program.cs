@@ -6,6 +6,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        new AmigaEmulator("/Users/RJ/Downloads/ESQ").Execute();
+        // https://github.com/Sakura-IT/Amiga-programming-examples/blob/master/ASM/HelloWorld/helloworld.s
+        new AmigaEmulator("/Users/rj/Downloads/vasm/helloworld").Execute();
     }
 }

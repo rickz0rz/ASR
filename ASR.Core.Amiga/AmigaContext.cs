@@ -8,7 +8,7 @@ public class AmigaContext : Context
 
     public AmigaContext()
     {
-        Libraries.Add(ProgramCounter + AbsExecBase, new ExecLibrary());
+        Libraries.Add(AbsExecBase, new ExecLibrary());
         PopulateLibraryActions();
     }
 }

@@ -30,7 +30,7 @@ public class InstructionCache
         var match = _instructions.FirstOrDefault(i => i.IsInstruction(opcode));
 
         if (match == null)
-            Console.WriteLine($"Instruction not found: 0x{opcode:X4} @ 0x{(context.ProgramCounter - 2):X8}");
+            throw new Exception($"No instruction found for {opcode:X4}");
 
         return match;
     }

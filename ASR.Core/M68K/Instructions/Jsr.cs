@@ -10,9 +10,10 @@ public class Jsr : BaseInstruction
         return (opcode & InstMask) == InstMaskTarget;
     }
 
-    public override void Execute(ushort opcode, Context context)
+    public override bool Execute(ushort opcode, Context context)
     {
         var address = GetEffectiveAddress(opcode, context);
+
         if (context.LibraryActions.ContainsKey(address))
         {
             // Execute the intercepted action. Since we're executing it in the context
@@ -22,7 +23,9 @@ public class Jsr : BaseInstruction
         else
         {
             context.PushLongToStack((uint)context.ProgramCounter);
-            context.ProgramCounter = address;
+            context.ProgramCounter = (uint)address;
         }
+
+        return true;
     }
 }

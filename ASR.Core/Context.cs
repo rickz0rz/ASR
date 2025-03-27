@@ -6,10 +6,14 @@ namespace ASR.Core;
 public class Context
 {
     public uint ProgramCounter { get; set; }
-    public uint[] A { get; set; }
+    public long[] A { get; set; }
     public uint[] D { get; set; }
+
+    public bool XFlag { get; set; }
     public bool NFlag { get; set; }
     public bool ZFlag { get; set; }
+    public bool VFlag { get; set; }
+    public bool CFlag { get; set; }
 
     private const uint HeapSize = 16 * 1024 * 1024; // 16MB
 
@@ -28,7 +32,7 @@ public class Context
             Memory[i] = 0;
         }
 
-        A = new uint[8];
+        A = new long[8];
         D = new uint[8];
 
         NFlag = false;

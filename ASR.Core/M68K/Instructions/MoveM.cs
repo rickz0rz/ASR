@@ -10,9 +10,12 @@ public class MoveM : BaseInstruction
         return (opcode & InstMask) == InstMaskTarget;
     }
 
-    public override void Execute(ushort opcode, Context context)
+    public override bool Execute(ushort opcode, Context context)
     {
-        // Stub.
-        context.ProgramCounter += 2;
+        var sizeBit = (opcode >> 6) & 1;
+        var directionBit = (opcode >> 10) & 1;
+        context.ProgramCounter += 2; // Stub.
+
+        return true;
     }
 }

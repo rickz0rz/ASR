@@ -15,7 +15,8 @@ public class ExecLibrary : BaseLibrary
             if (context is not AmigaContext amigaContext)
                 return;
 
-            var newLibraryOffset = 30000 + (amigaContext.Libraries.Count * 10000);
+            var lowestLibraryValue = amigaContext.Libraries.Keys.Min();
+            var newLibraryOffset = amigaContext.Libraries[lowestLibraryValue].Commands.Keys.Min() - 36;
 
             BaseLibrary? newLibraryObject = null;
 
@@ -28,14 +29,16 @@ public class ExecLibrary : BaseLibrary
                     newLibraryObject = new DosLibrary();
                     break;
                 default:
-                    Console.WriteLine($"{typeof(ExecLibrary)} - Unknown library name: {libraryName}");
+                    Console.WriteLine($"{typeof(ExecLibrary)} - Unsupported library: \"{libraryName}\"");
                     break;
             }
 
             if (newLibraryObject == null)
                 return;
 
-            amigaContext.Libraries.Add(newLibraryOffset + 0x10000, (BaseLibrary)newLibraryObject);
+            // Console.WriteLine($"Loaded '{libraryName}' in at {newLibraryOffset}");
+
+            amigaContext.Libraries.Add(newLibraryOffset, newLibraryObject);
             amigaContext.PopulateLibraryActions();
             amigaContext.D[0] = (uint)newLibraryOffset;
         });

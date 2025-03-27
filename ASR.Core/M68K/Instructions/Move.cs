@@ -13,8 +13,19 @@ public class Move : BaseInstruction
                && sizeModes.Contains((byte)((opcode >> 12) & 0b11));
     }
 
-    public override void Execute(ushort opcode, Context context)
+    public override bool Execute(ushort opcode, Context context)
     {
-        // Stub
+        var sizeBits = opcode >> 12 & 0b11;
+        var byteCount = sizeBits switch
+        {
+            0b01 => 1,
+            0b11 => 2,
+            0b10 => 4,
+            _ => throw new Exception($"Unhandled size bits: {sizeBits:b2}")
+        };
+
+        PutDestinationAddress(opcode, context, [(uint)GetSourceAddress(opcode, context, byteCount)]);
+
+        return true;
     }
 }

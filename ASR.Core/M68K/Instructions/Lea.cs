@@ -10,9 +10,10 @@ public class Lea : BaseInstruction
         return (opcode & InstMask) == InstMaskTarget;
     }
 
-    public override void Execute(ushort opcode, Context context)
+    public override bool Execute(ushort opcode, Context context)
     {
         var addressRegister = (opcode >> 9) & 0b111;
-        context.A[addressRegister] = GetEffectiveAddress(opcode, context);
+        context.A[addressRegister] = (uint)GetEffectiveAddress(opcode, context);
+        return true;
     }
 }

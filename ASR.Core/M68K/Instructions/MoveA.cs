@@ -17,7 +17,7 @@ public class MoveA : BaseInstruction
         return IsMoveAInstruction(opcode);
     }
 
-    public override void Execute(ushort opcode, Context context)
+    public override bool Execute(ushort opcode, Context context)
     {
         var size = opcode >> 12 & 0b11;
         switch (size)
@@ -32,18 +32,25 @@ public class MoveA : BaseInstruction
                 throw new NotImplementedException($"Size: {size}");
         }
 
+        var destinationRegister = (opcode >> 9) & 0b111;
         var register = opcode & 0b111;
         var mode = (opcode >> 3) & 0b111;
 
         switch (mode)
         {
+            case 0b000:
+                context.A[destinationRegister] = context.D[register];
+                break;
             case 0b001:
+                context.A[destinationRegister] = context.A[register];
                 break;
             case 0b111 when register == 0b000:
-                context.ProgramCounter += 2;
+                context.A[destinationRegister] = (uint)ReadWord(context);
                 break;
             default:
                 throw new NotImplementedException($"Mode: {mode:b3} with register {register:b3} @ 0x{context.ProgramCounter:X8}");
         }
+
+        return true;
     }
 }

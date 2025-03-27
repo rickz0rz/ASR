@@ -12,19 +12,62 @@ public class AmigaEmulator : Emulator
 
         Context.ProgramCounter = DefaultEntryPoint;
         var hunkStartingAddress = DefaultEntryPoint;
-        var codeSectionIndices = new Dictionary<int, uint>();
+        var hunkSectionAddressMap = new Dictionary<int, uint>();
 
         // Load the hunks into memory
         for (var hsi = 0; hsi < hunk.HunkSections.Count; hsi++)
         {
+            if (hunk.RelocationMaps.ContainsKey(hsi))
+            {
+                hunkStartingAddress = (uint)hunk.RelocationMaps[hsi].offset;
+            }
+
+            hunkSectionAddressMap.Add(hsi, hunkStartingAddress);
+
             var hunkSection = hunk.HunkSections[hsi];
-            codeSectionIndices.Add(hsi, hunkStartingAddress);
 
             for (var i = 0; i < hunkSection.Data.Count; i++)
                 Context.Memory[i + hunkStartingAddress] = hunkSection.Data[i];
 
-            // The 0x10000 buffer between hunks is completely arbitrary.
-            hunkStartingAddress += (uint)(hunkSection.Data.Count + 0x10000);
+            hunkStartingAddress += (uint)(hunkSection.Data.Count);
         }
+
+        // Adjust the memory locations from the relocation tables.
+        for (var hsi = 0; hsi < hunk.HunkSections.Count; hsi++)
+        {
+            if (!hunk.RelocationMaps.ContainsKey(hsi))
+                continue;
+
+            foreach (var addr in hunk.RelocationMaps[hsi].addresses)
+            {
+                var address = addr + hunk.RelocationMaps[hsi].offset;
+
+                // Read byte.
+                var v = ReadLongFromMemoryAddress((uint)address);
+
+                // Add the offset.
+                v += (uint)hunk.RelocationMaps[hsi].offset;
+
+                // Write the bytes back.
+                WriteLongToMemoryAddress((uint)address, v);
+            }
+        }
+    }
+
+    private uint ReadLongFromMemoryAddress(uint address)
+    {
+        uint v = Context.Memory[address];
+        v = (v << 8) + Context.Memory[address + 1];
+        v = (v << 8) + Context.Memory[address + 2];
+        v = (v << 8) + Context.Memory[address + 3];
+        return v;
+    }
+
+    private void WriteLongToMemoryAddress(uint address, uint value)
+    {
+        Context.Memory[address + 3] = (byte)(value & 0xFF);
+        Context.Memory[address + 2] = (byte)((value >> 8) & 0xFF);
+        Context.Memory[address + 1] = (byte)((value >> 16) & 0xFF);
+        Context.Memory[address] = (byte)((value >> 24) & 0xFF);
     }
 }
