@@ -38,11 +38,14 @@ public class MoveA : BaseInstruction
 
         switch (mode)
         {
-            case 0b000:
+            case 0b000: // Dn
                 context.A[destinationRegister] = context.D[register];
                 break;
-            case 0b001:
+            case 0b001: // An
                 context.A[destinationRegister] = context.A[register];
+                break;
+            case 0b101: // (d16,An)
+                context.A[destinationRegister] = context.A[register] + ReadTwosComplimentWord(context);
                 break;
             case 0b111 when register == 0b000:
                 context.A[destinationRegister] = (uint)ReadWord(context);

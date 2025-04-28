@@ -17,11 +17,15 @@ public class BaseInstruction
         var addressMode = (opcode >> 3) & 0b111;
         var register = opcode & 0b111;
 
+        // https://www.thedigitalcatonline.com/blog/2019/03/04/motorola-68000-addressing-modes/
+        // http://alanclements.org/68kaddressingmodes3.html
         switch (addressMode)
         {
-            case 0b000:
+            case 0b000: // Dn
                 return (int)context.D[register];
-            case 0b010:
+            case 0b001: // An
+                return context.Memory[(int)context.A[register]];
+            case 0b010: // (An)
                 return (int)context.A[register];
             case 0b101:
                 return (int)context.A[register] + ReadTwosComplimentWord(context);
@@ -51,14 +55,19 @@ public class BaseInstruction
         }
     }
 
-    protected static void PutDestinationAddress(ushort opcode, Context context, uint[] value)
+    protected void PutDestinationAddress(ushort opcode, Context context, uint[] value)
     {
         var addressMode = (opcode >> 6) & 0b111;
         var register = (opcode >> 9) & 0b111;
         switch (addressMode)
         {
-            case 0b000:
+            case 0b000: // Dn
                 context.D[register] = value[0];
+                break;
+            case 0b101: // (d16,An)
+                var displacement = ReadTwosComplimentWord(context);
+                var address = context.A[register] + displacement;
+                WriteLong(context, address, value[0]);
                 break;
             //case 0b011 when register == 0b011:
             //    break;
@@ -91,5 +100,14 @@ public class BaseInstruction
     {
         var b = context.Memory[context.ProgramCounter++];
         return ((b << 8) | context.Memory[context.ProgramCounter++]);
+    }
+
+    protected void WriteLong(Context context, long address, uint value)
+    {
+        var b = value;
+        context.Memory[address] = (byte)(value >> 24 & 0xFF);
+        context.Memory[address + 1] = (byte)(value >> 16 & 0xFF);
+        context.Memory[address + 2] = (byte)(value >> 8 & 0xFF);
+        context.Memory[address + 3] = (byte)(value & 0xFF);
     }
 }

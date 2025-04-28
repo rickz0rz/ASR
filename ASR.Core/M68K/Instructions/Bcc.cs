@@ -22,12 +22,20 @@ public class Bcc : BaseInstruction
 
         displacement = ConvertWordToTwosCompliment(displacement);
 
+        // https://www.markwrobel.dk/post/amiga-machine-code-letter3-branching/
+
         switch (condition)
         {
-            case 0b0000: // BRA
+            case 0b0000: // BRA: No condition
                 context.ProgramCounter += (uint)displacement;
                 break;
-            case 0b0111: // BEQ
+            case 0b0110: // BNE: !Z
+                if (!context.ZFlag)
+                {
+                    context.ProgramCounter += (uint)displacement;
+                }
+                break;
+            case 0b0111: // BEQ: Z
                 if (context.ZFlag)
                 {
                     context.ProgramCounter += (uint)displacement;

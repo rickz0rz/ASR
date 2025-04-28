@@ -7,6 +7,7 @@ public class ExecLibrary : BaseLibrary
 {
     private const int OpenLibrary = -552;
     private const int CloseLibrary = -414;
+    private const int SetSignal = -306;
 
     public ExecLibrary()
     {
@@ -36,7 +37,8 @@ public class ExecLibrary : BaseLibrary
             if (newLibraryObject == null)
                 return;
 
-            // Console.WriteLine($"Loaded '{libraryName}' in at {newLibraryOffset}");
+            if (EmulatorConfiguration.DebugPrint)
+                Console.WriteLine($"{typeof(ExecLibrary)} - Loaded '{libraryName}' in at {newLibraryOffset}");
 
             amigaContext.Libraries.Add(newLibraryOffset, newLibraryObject);
             amigaContext.PopulateLibraryActions();
@@ -45,7 +47,12 @@ public class ExecLibrary : BaseLibrary
 
         Commands.Add(CloseLibrary, (context) =>
         {
-            // Stub.
+            Console.WriteLine($"{typeof(ExecLibrary)} - Closelibrary [Stub]");
+        });
+
+        Commands.Add(SetSignal, (context) =>
+        {
+            Console.WriteLine($"{typeof(ExecLibrary)} - SetSignal [D0: 0x{context.D[0]:X8}] [Stub]");
         });
     }
 }
