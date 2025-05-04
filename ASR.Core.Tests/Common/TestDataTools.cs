@@ -18,6 +18,10 @@ public class TestDataTools
         foreach (var variant in variants)
         {
             var filename = Path.Combine(contentsPath, $"m68000/v1/{variant}.json");
+
+            if (!File.Exists(filename))
+                throw new Exception($"File {filename} does not exist... did you forget to do a recursive pull or decode the tests?");
+
             using var stream = File.OpenRead(filename);
             var jsonDocument = JsonDocument.Parse(stream);
             var rootElement = jsonDocument.RootElement;
