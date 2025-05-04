@@ -4,11 +4,11 @@ namespace ASR.Core.M68K;
 
 public class InstructionCache
 {
-    private readonly List<BaseInstruction> _instructions;
+    private readonly List<Type> _instructionTypes;
 
     public InstructionCache()
     {
-        _instructions = [];
+        _instructionTypes = [];
 
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -18,19 +18,18 @@ public class InstructionCache
                 if (type == typeof(BaseInstruction))
                     continue;
 
-                var instruction = (BaseInstruction)Activator.CreateInstance(type);
-                if (instruction != null)
-                    _instructions.Add(instruction);
+                _instructionTypes.Add(type);
             }
         }
     }
 
-    public BaseInstruction? GetInstruction(Context context, ushort opcode)
+    public Type GetInstructionType(CPUContext cpuContext, ushort opcode)
     {
-        var match = _instructions.FirstOrDefault(i => i.IsInstruction(opcode));
-
-        if (match == null)
-            throw new Exception($"No instruction found for {opcode:X4}");
+        var match = _instructionTypes.FirstOrDefault(i =>
+        {
+            var methodInfo = i.GetMethod("IsInstruction");
+            return (bool)methodInfo.Invoke(null, [opcode]);
+        });
 
         return match;
     }

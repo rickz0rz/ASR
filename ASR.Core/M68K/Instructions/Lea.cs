@@ -5,15 +5,21 @@ public class Lea : BaseInstruction
     private const int InstMask = 0b1111_0001_1100_0000;
     private const int InstMaskTarget = 0b0100_0001_1100_0000;
 
-    public override bool IsInstruction(ushort opcode)
+    private uint _addressRegister;
+
+    public Lea(ushort opcode, CPUContext cpuContext) : base(opcode)
+    {
+        _addressRegister = (uint)(Opcode >> 9) & 0b111;
+    }
+
+    public static bool IsInstruction(ushort opcode)
     {
         return (opcode & InstMask) == InstMaskTarget;
     }
 
-    public override bool Execute(ushort opcode, Context context)
+    public override bool Execute(CPUContext cpuContext)
     {
-        var addressRegister = (opcode >> 9) & 0b111;
-        context.A[addressRegister] = (uint)GetEffectiveAddress(opcode, context);
+        cpuContext.A[_addressRegister] = GetEffective(Opcode, cpuContext);
         return true;
     }
 }

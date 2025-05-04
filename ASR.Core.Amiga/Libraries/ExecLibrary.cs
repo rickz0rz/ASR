@@ -5,6 +5,7 @@ namespace ASR.Core.Amiga.Libraries;
 // https://d0.se/autodocs/exec.library
 public class ExecLibrary : BaseLibrary
 {
+    /*
     private const int OpenLibrary = -552;
     private const int CloseLibrary = -414;
     private const int SetSignal = -306;
@@ -55,4 +56,5 @@ public class ExecLibrary : BaseLibrary
             Console.WriteLine($"{typeof(ExecLibrary)} - SetSignal [D0: 0x{context.D[0]:X8}] [Stub]");
         });
     }
+    */
 }

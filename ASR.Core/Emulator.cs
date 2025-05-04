@@ -1,69 +1,67 @@
-using System.Globalization;
 using ASR.Core.M68K;
+using ASR.Core.M68K.Instructions;
 
 namespace ASR.Core;
 
 public class Emulator
 {
-    protected readonly Context Context;
+    protected readonly CPUContext CpuContext;
     protected readonly InstructionCache InstructionCache;
+    private readonly Dictionary<uint, BaseInstruction> _instructionMap;
 
-    protected Emulator()
+    protected Emulator(CPUContext cpuContext)
     {
-        Context = new Context();
+        CpuContext = cpuContext;
         InstructionCache = new InstructionCache();
+        _instructionMap = new Dictionary<uint, BaseInstruction>();
     }
 
-    protected Emulator(Context context)
+    /// <summary>
+    /// Begin execution.
+    /// </summary>
+    /// <param name="address">The initial address to start execution at.</param>
+    /// <param name="executionHook">A function that is called on each instruction's execution.
+    /// If true, skip the rest of the instruction being processed.</param>
+    protected void Execute(uint address, Func<CPUContext, BaseInstruction, bool> executionHook)
     {
-        Context = context;
-        InstructionCache = new InstructionCache();
-    }
+        CpuContext.ProgramCounter = address;
 
-    private ushort ReadOpcode()
-    {
-        var byte1 = Context.Memory[Context.ProgramCounter];
-        Context.ProgramCounter++;
-        var byte2 = Context.Memory[Context.ProgramCounter];
-        Context.ProgramCounter++;
-        return (ushort)(byte1 << 8 | byte2);
-    }
-
-    public void Execute()
-    {
         while (true)
         {
+            CpuContext.PopulatePrefetch();
+
             try
             {
-                if (EmulatorConfiguration.DebugPrint)
-                    Console.Write($"{Context.ProgramCounter:X6}");
-
-                var opcode = ReadOpcode();
+                var effectiveProgramCounter = CpuContext.ProgramCounter - 4;
 
                 if (EmulatorConfiguration.DebugPrint)
-                    Console.Write($" -> {opcode:X4}");
+                    Console.Write($"PC: 0x{effectiveProgramCounter:X6}");
 
-                var instruction = InstructionCache.GetInstruction(Context, opcode);
-                if (instruction == null)
+                if (!_instructionMap.TryGetValue(effectiveProgramCounter, out var instruction))
                 {
-                    Console.WriteLine();
+                    instruction = BaseInstruction.GetInstruction(CpuContext);
+                    _instructionMap.Add(effectiveProgramCounter, instruction);
                 }
-                else
-                {
-                    if (EmulatorConfiguration.DebugPrint)
-                        Console.WriteLine($" ({instruction.GetType()})");
 
-                    if (!instruction.Execute(opcode, Context))
-                    {
-                        break;
-                    }
+                if (EmulatorConfiguration.DebugPrint)
+                    Console.Write($" -> {instruction.Opcode:X4} ({instruction.GetType()}) ");
+
+                if (EmulatorConfiguration.DebugPrint)
+                    Console.WriteLine();
+
+                if (executionHook(CpuContext, instruction))
+                    continue;
+
+                if (!instruction.Execute(CpuContext))
+                {
+                    break;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
                 Console.WriteLine(ex);
-                Console.WriteLine($"PC: 0x{Context.ProgramCounter:X6}");
+                Console.WriteLine($"PC: 0x{CpuContext.ProgramCounter:X6}");
                 return;
             }
         }

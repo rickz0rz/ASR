@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR.Core", "ASR.Core\ASR.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR.Core.Amiga", "ASR.Core.Amiga\ASR.Core.Amiga.csproj", "{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASR.Core.Tests", "ASR.Core.Tests\ASR.Core.Tests.csproj", "{CA500D98-0F53-4CB6-B1C7-23F2B77011DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{722B5E7B-A840-4C37-B674-3BDE63EDCCCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA500D98-0F53-4CB6-B1C7-23F2B77011DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA500D98-0F53-4CB6-B1C7-23F2B77011DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA500D98-0F53-4CB6-B1C7-23F2B77011DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA500D98-0F53-4CB6-B1C7-23F2B77011DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

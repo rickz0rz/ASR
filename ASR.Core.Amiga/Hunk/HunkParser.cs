@@ -5,11 +5,13 @@ public class HunkParser
     public static HunkFile Parse(string filename)
     {
         // Console.WriteLine($"Parsing file: {filename}");
+        return Parse(File.ReadAllBytes(filename));
+    }
 
+    public static HunkFile Parse(byte[] fileData)
+    {
         var offset = 0;
         var hunk = new HunkFile();
-
-        var fileData = File.ReadAllBytes(filename);
 
         hunk.Magic.AddRange(fileData.Take(4));
         offset += 4;
