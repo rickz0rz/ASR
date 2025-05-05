@@ -53,17 +53,13 @@ public class BaseInstruction
             case 0b010: // (An)
                 // Todo: read full size of memory
                 return cpuContext.Memory[cpuContext.A[register] & 0x00FFFFFF];
-            case 0b011: // (An)+
+            case 0b011 when byteCount == 1: // (An)+
                 uint m001R = 0;
-                for (var i = 0; i < byteCount; i++)
-                {
-                    var m001Ba = cpuContext.A[register] & 0x00FFFFFF;
-                    cpuContext.A[register] += 1;
-                    m001R = (m001R << 8) | cpuContext.Memory[m001Ba];
-                }
-                return m001R;
-            case 0b100: // -(An)
-                cpuContext.A[register] -= 1;
+                var m001Ba = cpuContext.A[register] & 0x00FFFFFF;
+                cpuContext.A[register] += (uint)(register == 7 ? 2 : 1);
+                return cpuContext.Memory[m001Ba];
+            case 0b100 when byteCount == 1: // -(An)
+                cpuContext.A[register] -= (uint)(register == 7 ? 2 : 1);
                 return cpuContext.Memory[cpuContext.A[register] & 0xFFFFFF];
             case 0b101: // (d16,An)
                 return cpuContext.Memory[(uint)((cpuContext.A[register] & 0x00FFFFFF) + ConvertWordToShort(cpuContext.GetPrefetchWord()))];
@@ -110,54 +106,35 @@ public class BaseInstruction
     {
         var addressMode = (opcode >> 6) & 0b111;
         var register = (uint)(opcode >> 9) & 0b111;
+
         switch (addressMode)
         {
-            case 0b000: // Dn
-                switch (byteCount)
-                {
-                    case 1:
-                        var result1 = (cpuContext.D[register] & 0xFFFFFF00) | (value & 0x000000FF);
-                        cpuContext.D[register] = result1;
-                        return cpuContext.D[register];
-                    case 2:
-                        var result2 = (cpuContext.D[register] & 0xFFFF0000) | (value & 0x0000FFFF);
-                        cpuContext.D[register] = result2;
-                        return cpuContext.D[register];
-                    case 4:
-                        cpuContext.D[register] = value;
-                        return cpuContext.D[register];
-                    default:
-                        throw new NotImplementedException();
-                }
-            case 0b010: // (An)
-                switch (byteCount)
-                {
-                    case 1:
-                        WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
-                        return value;
-                    case 4:
-                        WriteLongWord(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
-                        return value;
-                    default:
-                        throw new NotImplementedException();
-                }
-            case 0b011: // (An)+
-                switch (byteCount)
-                {
-                    case 1:
-                        WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
-                        cpuContext.A[register] += 1;
-                        return value;
-                    default:
-                        throw new NotImplementedException();
-                }
-            case 0b100: // -(An)
-                cpuContext.A[register] -= 1;
+            case 0b000 when byteCount == 1: // Dn
+                cpuContext.D[register] = (cpuContext.D[register] & 0xFFFFFF00) | (value & 0x000000FF);
+                return cpuContext.D[register];
+            case 0b000 when byteCount == 2: // Dn
+                cpuContext.D[register] = (cpuContext.D[register] & 0xFFFF0000) | (value & 0x0000FFFF);
+                return cpuContext.D[register];
+            case 0b000 when byteCount == 4: // Dn
+                cpuContext.D[register] = value;
+                return cpuContext.D[register];
+            case 0b010 when byteCount == 1: // (An)
+                WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
+                return value;
+            case 0b010 when byteCount == 4: // (An)
+                WriteLongWord(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
+                return value;
+            case 0b011 when byteCount == 1: // (An)+
+                WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
+                cpuContext.A[register] += (uint)(register == 7 ? 2 : 1);
+                return value;
+            case 0b100 when byteCount == 1: // -(An)
+                cpuContext.A[register] -= (uint)(register == 7 ? 2 : 1);
                 WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
                 return value;
             case 0b101: // (d16,An)
-                var address = (uint)(cpuContext.A[register] + ReadShortFromPrefetch(cpuContext));
-                WriteLongWord(cpuContext, address, value);
+                var b101Address = (uint)(cpuContext.A[register] + ReadShortFromPrefetch(cpuContext));
+                WriteLongWord(cpuContext, b101Address, value);
                 return value;
             case 0b110: // (d8,An,Xn)
                 var b100AnRegister = cpuContext.A[register];
@@ -178,20 +155,12 @@ public class BaseInstruction
                 return value;
             case 0b111 when register == 0b000: // (xxx).W
                 throw new NotImplementedException();
-            case 0b111 when register == 0b001: // (xxx).L
-                var b111r001Addr = cpuContext.GetPrefetchLongWord();
-                switch (byteCount)
-                {
-                    case 1:
-                        var b111r001b = ReadByte(cpuContext, b111r001Addr);
-                        cpuContext.A[b111r001Addr] = (cpuContext.A[b111r001Addr] & 0xFFFFFF00) | b111r001b;
-                        break;
-                    case 4:
-                        cpuContext.A[register] = ReadLongWord(cpuContext, b111r001Addr);
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
+            case 0b111 when register == 0b001 && byteCount == 1 : // (xxx).L
+                cpuContext.A[register] = (cpuContext.A[register] & 0xFFFFFF00)
+                                         | ReadByte(cpuContext, cpuContext.GetPrefetchLongWord());
+                return cpuContext.A[register];
+            case 0b111 when register == 0b001 && byteCount == 1 : // (xxx).L
+                cpuContext.A[register] = ReadLongWord(cpuContext, cpuContext.GetPrefetchLongWord());
                 return cpuContext.A[register];
             default:
                 throw new NotImplementedException($"Address mode {addressMode:b3} and register {register:b3} is not implemented.");
