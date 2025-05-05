@@ -156,12 +156,8 @@ public class BaseInstruction
             case 0b111 when register == 0b000: // (xxx).W
                 throw new NotImplementedException();
             case 0b111 when register == 0b001 && byteCount == 1 : // (xxx).L
-                cpuContext.A[register] = (cpuContext.A[register] & 0xFFFFFF00)
-                                         | ReadByte(cpuContext, cpuContext.GetPrefetchLongWord());
-                return cpuContext.A[register];
-            case 0b111 when register == 0b001 && byteCount == 1 : // (xxx).L
-                cpuContext.A[register] = ReadLongWord(cpuContext, cpuContext.GetPrefetchLongWord());
-                return cpuContext.A[register];
+                WriteByte(cpuContext, cpuContext.GetPrefetchLongWord() & 0xFFFFFF, value & 0xFF);
+                return value & 0xFF;
             default:
                 throw new NotImplementedException($"Address mode {addressMode:b3} and register {register:b3} is not implemented.");
         }
