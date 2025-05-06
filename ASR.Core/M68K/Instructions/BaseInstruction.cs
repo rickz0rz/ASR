@@ -78,12 +78,10 @@ public class BaseInstruction
                         throw new NotImplementedException();
                 }
             case 0b111 when register == 0b000: // (xxx).W
-                var b111a = cpuContext.GetPrefetchWord();
-                if (b111a >> 15 == 1)
-                {
-                    return cpuContext.Memory[(uint)(b111a | 0xFF0000) & 0xFFFFFF];
-                }
-                return cpuContext.Memory[(uint)(b111a | 0xFF0000) & 0xFFFFFF];
+                var b111A = cpuContext.GetPrefetchWord();
+                return b111A >> 15 == 1
+                    ? cpuContext.Memory[(uint)(b111A | 0xFF0000) & 0xFFFFFF]
+                    : cpuContext.Memory[b111A];
             case 0b111 when register == 0b001: // (xxx).L
                 return cpuContext.Memory[cpuContext.GetPrefetchLongWord() & 0xFFFFFF];
             case 0b111 when register == 0b100 && byteCount == 1: // #<data>
