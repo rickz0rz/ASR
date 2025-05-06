@@ -5,7 +5,7 @@ public class MoveQ : BaseInstruction
     private const int InstMask = 0b1111_0001_0000_0000;
     private const int InstMaskTarget = 0b0111_0000_0000_0000;
 
-    public MoveQ(ushort opcode, CPUContext cpuContext) : base(opcode)
+    public MoveQ(ushort opcode, ProcessorContext processorContext) : base(opcode)
     {
     }
 
@@ -19,9 +19,9 @@ public class MoveQ : BaseInstruction
         return IsMoveQInstruction(opcode);
     }
 
-    public override bool Execute(CPUContext cpuContext)
+    public override bool Execute(ProcessorContext processorContext)
     {
-        cpuContext.D[(Opcode >> 9) & 0b111] = (uint)(Opcode & 0xFF);
+        processorContext.D[(Opcode >> 9) & 0b111] = (uint)(Opcode & 0xFF);
         // N and Z set?
         //context.VFlag = false;
         //context.CFlag = false;

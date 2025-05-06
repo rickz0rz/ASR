@@ -23,7 +23,7 @@ public class InstructionCache
         }
     }
 
-    public Type GetInstructionType(CPUContext cpuContext, ushort opcode)
+    public Type GetInstructionType(ProcessorContext processorContext, ushort opcode)
     {
         var match = _instructionTypes.FirstOrDefault(i =>
         {

@@ -5,13 +5,13 @@ namespace ASR.Core;
 
 public class Emulator
 {
-    protected readonly CPUContext CpuContext;
+    protected readonly ProcessorContext ProcessorContext;
     protected readonly InstructionCache InstructionCache;
     private readonly Dictionary<uint, BaseInstruction> _instructionMap;
 
-    protected Emulator(CPUContext cpuContext)
+    protected Emulator(ProcessorContext processorContext)
     {
-        CpuContext = cpuContext;
+        ProcessorContext = processorContext;
         InstructionCache = new InstructionCache();
         _instructionMap = new Dictionary<uint, BaseInstruction>();
     }
@@ -22,24 +22,24 @@ public class Emulator
     /// <param name="address">The initial address to start execution at.</param>
     /// <param name="executionHook">A function that is called on each instruction's execution.
     /// If true, skip the rest of the instruction being processed.</param>
-    protected void Execute(uint address, Func<CPUContext, BaseInstruction, bool> executionHook)
+    protected void Execute(uint address, Func<ProcessorContext, BaseInstruction, bool> executionHook)
     {
-        CpuContext.ProgramCounter = address;
+        ProcessorContext.ProgramCounter = address;
 
         while (true)
         {
-            CpuContext.PopulatePrefetch();
+            ProcessorContext.PopulatePrefetch();
 
             try
             {
-                var effectiveProgramCounter = CpuContext.ProgramCounter - 4;
+                var effectiveProgramCounter = ProcessorContext.ProgramCounter - 4;
 
                 if (EmulatorConfiguration.DebugPrint)
                     Console.Write($"PC: 0x{effectiveProgramCounter:X6}");
 
                 if (!_instructionMap.TryGetValue(effectiveProgramCounter, out var instruction))
                 {
-                    instruction = BaseInstruction.GetInstruction(CpuContext);
+                    instruction = BaseInstruction.GetInstruction(ProcessorContext);
                     _instructionMap.Add(effectiveProgramCounter, instruction);
                 }
 
@@ -49,10 +49,10 @@ public class Emulator
                 if (EmulatorConfiguration.DebugPrint)
                     Console.WriteLine();
 
-                if (executionHook(CpuContext, instruction))
+                if (executionHook(ProcessorContext, instruction))
                     continue;
 
-                if (!instruction.Execute(CpuContext))
+                if (!instruction.Execute(ProcessorContext))
                 {
                     break;
                 }
@@ -61,7 +61,7 @@ public class Emulator
             {
                 Console.WriteLine();
                 Console.WriteLine(ex);
-                Console.WriteLine($"PC: 0x{CpuContext.ProgramCounter:X6}");
+                Console.WriteLine($"PC: 0x{ProcessorContext.ProgramCounter:X6}");
                 return;
             }
         }

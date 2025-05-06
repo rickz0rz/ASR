@@ -1,9 +1,9 @@
 using System.Text;
 using ASR.Core.M68K;
 
-namespace ASR.Core;
+namespace ASR.Core.M68K;
 
-public class CPUContext
+public class ProcessorContext
 {
     public uint ProgramCounter { get; set; }
 
@@ -138,7 +138,7 @@ public class CPUContext
     public IMemory Memory { get; set; }
     public Queue<byte> Prefetch { get; set; }
 
-    public CPUContext(IMemory memory)
+    public ProcessorContext(IMemory memory)
     {
         Stack = new Stack<byte>();
         Memory = memory;

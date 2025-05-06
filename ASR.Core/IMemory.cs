@@ -1,4 +1,4 @@
-namespace ASR.Core.M68K;
+namespace ASR.Core;
 
 public interface IMemory
 {

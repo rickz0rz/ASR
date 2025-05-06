@@ -1,6 +1,6 @@
-namespace ASR.Core;
+namespace ASR.Core.M68K;
 
-public class AddressRegisters(CPUContext cpuContext)
+public class AddressRegisters(ProcessorContext processorContext)
 {
     private readonly uint[] _array = new uint[7];
 
@@ -9,20 +9,21 @@ public class AddressRegisters(CPUContext cpuContext)
         get
         {
             if (index == 7)
-                return cpuContext.IsInSupervisorMode ? cpuContext.SupervisorStackPointer : cpuContext.UserStackPointer;
+                return processorContext.IsInSupervisorMode ? processorContext.SupervisorStackPointer : processorContext.UserStackPointer;
+
             return _array[index];
         }
         set
         {
             if (index == 7)
             {
-                if (cpuContext.IsInSupervisorMode)
+                if (processorContext.IsInSupervisorMode)
                 {
-                    cpuContext.SupervisorStackPointer = value;
+                    processorContext.SupervisorStackPointer = value;
                 }
                 else
                 {
-                    cpuContext.UserStackPointer = value;
+                    processorContext.UserStackPointer = value;
                 }
             }
             else

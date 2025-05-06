@@ -5,7 +5,8 @@ namespace ASR.Core.Tests;
 public class DictionaryMemory(IDictionary<uint, byte> dictionary) : IMemory
 {
     /// <summary>
-    /// If true, hrow an exception when a value is
+    /// If true, throw an exception when a test attempts to read a value that's
+    /// not present in the dictionary.
     /// </summary>
     private const bool StrictMemoryMode = false;
 

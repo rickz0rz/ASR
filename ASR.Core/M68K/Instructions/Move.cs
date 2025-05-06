@@ -7,7 +7,7 @@ public class Move : BaseInstruction
 
     private readonly int _sizeBits;
 
-    public Move(ushort opcode, CPUContext cpuContext) : base(opcode)
+    public Move(ushort opcode, ProcessorContext processorContext) : base(opcode)
     {
         _sizeBits = opcode >> 12 & 0b11;
     }
@@ -20,7 +20,7 @@ public class Move : BaseInstruction
                && sizeModes.Contains((byte)((opcode >> 12) & 0b11));
     }
 
-    public override bool Execute(CPUContext cpuContext)
+    public override bool Execute(ProcessorContext processorContext)
     {
         var byteCount = _sizeBits switch
         {
@@ -30,16 +30,13 @@ public class Move : BaseInstruction
             _ => throw new Exception($"Unhandled size bits: {_sizeBits:b2}")
         };
 
-        var source = GetFromSource(Opcode, cpuContext, byteCount);
-        var result = PutAtDestination(Opcode, cpuContext, source, byteCount);
+        var source = GetFromSource(Opcode, processorContext, byteCount);
+        var result = PutAtDestination(Opcode, processorContext, source, byteCount);
 
-        var bitOffset = byteCount * 8 - 1;
-
-        // why are these backwards? the value must be wrong..
-        cpuContext.NFlag = ((result >> bitOffset) & 1) == 1;
-        cpuContext.ZFlag = result == 0;
-        cpuContext.VFlag = false;
-        cpuContext.CFlag = false;
+        processorContext.NFlag = ((result >> (byteCount * 8 - 1)) & 1) == 1;
+        processorContext.ZFlag = result == 0;
+        processorContext.VFlag = false;
+        processorContext.CFlag = false;
 
         return true;
     }

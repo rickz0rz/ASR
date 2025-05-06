@@ -1,5 +1,3 @@
-using ASR.Core.Libraries;
-
 namespace ASR.Core.Amiga.Libraries;
 
 // https://d0.se/autodocs/exec.library

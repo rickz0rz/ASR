@@ -3,9 +3,9 @@ using ASR.Core.Amiga;
 
 namespace ASR;
 
-class Program
+internal static class Program
 {
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
         EmulatorConfiguration.DebugPrint = true;
 

@@ -7,7 +7,7 @@ public class Lea : BaseInstruction
 
     private uint _addressRegister;
 
-    public Lea(ushort opcode, CPUContext cpuContext) : base(opcode)
+    public Lea(ushort opcode, ProcessorContext processorContext) : base(opcode)
     {
         _addressRegister = (uint)(Opcode >> 9) & 0b111;
     }
@@ -17,9 +17,9 @@ public class Lea : BaseInstruction
         return (opcode & InstMask) == InstMaskTarget;
     }
 
-    public override bool Execute(CPUContext cpuContext)
+    public override bool Execute(ProcessorContext processorContext)
     {
-        cpuContext.A[_addressRegister] = GetEffective(Opcode, cpuContext);
+        processorContext.A[_addressRegister] = GetEffective(Opcode, processorContext);
         return true;
     }
 }
