@@ -85,7 +85,7 @@ public class BaseInstruction
             case 0b111 when register == 0b001: // (xxx).L
                 return cpuContext.Memory[cpuContext.GetPrefetchLongWord() & 0xFFFFFF];
             case 0b111 when register == 0b100 && byteCount == 1: // #<data>
-                return cpuContext.GetPrefetchByte();
+                return (uint)(cpuContext.GetPrefetchWord() & 0xFF);
             case 0b111 when register == 0b100 && byteCount == 2: // #<data>
                 return cpuContext.GetPrefetchWord();
             case 0b111 when register == 0b100 && byteCount == 4: // #<data>
