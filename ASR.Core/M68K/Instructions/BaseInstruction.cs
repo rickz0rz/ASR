@@ -78,7 +78,12 @@ public class BaseInstruction
                         throw new NotImplementedException();
                 }
             case 0b111 when register == 0b000: // (xxx).W
-                throw new NotImplementedException();
+                var b111a = cpuContext.GetPrefetchWord();
+                if (b111a >> 15 == 1)
+                {
+                    return cpuContext.Memory[(uint)(b111a | 0xFF0000) & 0xFFFFFF];
+                }
+                return cpuContext.Memory[(uint)(b111a | 0xFF0000) & 0xFFFFFF];
             case 0b111 when register == 0b001: // (xxx).L
                 return cpuContext.Memory[cpuContext.GetPrefetchLongWord() & 0xFFFFFF];
             case 0b111 when register == 0b100 && byteCount == 1: // #<data>
