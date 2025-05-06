@@ -46,21 +46,22 @@ public class BaseInstruction
         {
             case 0b000: // Dn
                 return processorContext.D[register];
-            case 0b001: // An (with size)
-                return processorContext.Memory[processorContext.A[register]];
-            case 0b010: // (An)
-                // Todo: read full size of memory
-                return processorContext.Memory[processorContext.A[register] & 0x00FFFFFF];
+            case 0b001: // An
+                return processorContext.A[register];
+            case 0b010 when byteCount == 1: // (An)
+                return ReadByte(processorContext, processorContext.A[register] & 0x00FFFFFF);
             case 0b011 when byteCount == 1: // (An)+
-                uint m001R = 0;
-                var m001Ba = processorContext.A[register] & 0x00FFFFFF;
+                var m001Ba = processorContext.A[register];
                 processorContext.A[register] += (uint)(register == 7 ? 2 : 1);
-                return processorContext.Memory[m001Ba];
+                return ReadByte(processorContext, m001Ba & 0x00FFFFFF);
             case 0b100 when byteCount == 1: // -(An)
                 processorContext.A[register] -= (uint)(register == 7 ? 2 : 1);
-                return processorContext.Memory[processorContext.A[register] & 0xFFFFFF];
-            case 0b101: // (d16,An)
-                return processorContext.Memory[(uint)((processorContext.A[register] & 0x00FFFFFF) + ConvertWordToShort(processorContext.GetPrefetchWord()))];
+                return ReadByte(processorContext, processorContext.A[register] & 0xFFFFFF);
+            case 0b100 when byteCount == 2: // -(An)
+                processorContext.A[register] -= (uint)(register == 7 ? 2 : 1);
+                return ReadWord(processorContext, processorContext.A[register] & 0xFFFFFF);
+            case 0b101 when byteCount == 1: // (d16,An)
+                return ReadByte(processorContext, (uint)((processorContext.A[register] & 0x00FFFFFF) + ConvertWordToShort(processorContext.GetPrefetchWord())));
             case 0b110: // (d8,An,Xn)
                 var b100AnRegister = processorContext.A[register];
                 var b100XRegisterValue = GetB100ExtensionValue(processorContext);
@@ -69,6 +70,7 @@ public class BaseInstruction
                 return byteCount switch
                 {
                     1 => ReadByte(processorContext, b100Address & 0xFFFFFF),
+                    2 => ReadWord(processorContext, b100Address & 0xFFFFFF),
                     4 => ReadLongWord(processorContext, b100Address & 0xFFFFFF),
                     _ => throw new NotImplementedException()
                 };
@@ -88,19 +90,23 @@ public class BaseInstruction
             case 0b111 when register == 0b010 && byteCount == 1: // (d16,PC)
                 var pcB0111R010 = (processorContext.ProgramCounter - 4);
                 return processorContext.Memory[(uint)(pcB0111R010 + ConvertWordToShort(processorContext.GetPrefetchWord()))];
-            case 0b111 when register == 0b011: // (d8,PC,Xn)
-                var pc = processorContext.ProgramCounter - 4; // Not sure why...?
-                var b111XRegisterValue = GetB100ExtensionValue(processorContext);
-                var b111Displacement = ReadSbyteFromPrefetch(processorContext);
-                var b111Address = (uint)(pc + b111XRegisterValue + b111Displacement);
-                return byteCount switch
-                {
-                    1 => ReadByte(processorContext, b111Address & 0xFFFFFF),
-                    4 => ReadLongWord(processorContext, b111Address & 0xFFFFFF),
-                    _ => throw new NotImplementedException()
-                };
+            case 0b111 when register == 0b011 && byteCount == 1: // (d8,PC,Xn)
+                var b111R011BC1 = (uint)((processorContext.ProgramCounter - 4)
+                                         + GetB100ExtensionValue(processorContext)
+                                         + ReadSbyteFromPrefetch(processorContext));
+                return ReadByte(processorContext, b111R011BC1 & 0xFFFFFF);
+            case 0b111 when register == 0b011 && byteCount == 2: // (d8,PC,Xn)
+                var b111R011BC2 = (uint)((processorContext.ProgramCounter - 4)
+                                         + GetB100ExtensionValue(processorContext)
+                                         + ReadSbyteFromPrefetch(processorContext));
+                return ReadWord(processorContext, b111R011BC2 & 0xFFFFFF);
+            case 0b111 when register == 0b011 && byteCount == 4: // (d8,PC,Xn)
+                var b111R011BC4 = (uint)(processorContext.ProgramCounter - 4 // why?
+                                         + GetB100ExtensionValue(processorContext)
+                                         + ReadSbyteFromPrefetch(processorContext));
+                return ReadLongWord(processorContext, b111R011BC4 & 0xFFFFFF);
             default:
-                throw new NotImplementedException($"Address mode {addressMode:b3} and register {register:b3} is not implemented.");
+                throw new NotImplementedException($"Read: Byte count {byteCount}, address mode {addressMode:b3}, and register {register:b3} is not implemented.");
         }
     }
 
@@ -153,6 +159,9 @@ public class BaseInstruction
                     case 1:
                         WriteByte(processorContext, b100Address & 0xFFFFFF, (byte)value);
                         break;
+                    case 2:
+                        WriteWord(processorContext, b100Address & 0xFFFFFF, (ushort)value);
+                        break;
                     case 4:
                         WriteLongWord(processorContext, b100Address & 0xFFFFFF, value);
                         break;
@@ -171,7 +180,7 @@ public class BaseInstruction
                 WriteByte(processorContext, processorContext.GetPrefetchLongWord() & 0xFFFFFF, (byte)value);
                 return value & 0xFF;
             default:
-                throw new NotImplementedException($"Address mode {addressMode:b3} and register {register:b3} is not implemented.");
+                throw new NotImplementedException($"Write: Byte count {byteCount}, address mode {addressMode:b3}, and register {register:b3} is not implemented.");
         }
     }
 
@@ -238,6 +247,12 @@ public class BaseInstruction
     protected uint ReadByte(ProcessorContext processorContext, uint address)
     {
         return processorContext.Memory[address];
+    }
+
+    protected void WriteWord(ProcessorContext processorContext, uint address, ushort value)
+    {
+        processorContext.Memory[address] = (byte)(value >> 8 & 0xFF);
+        processorContext.Memory[address + 1] = (byte)(value & 0xFF);
     }
 
     protected uint ReadWord(ProcessorContext processorContext, uint address)
