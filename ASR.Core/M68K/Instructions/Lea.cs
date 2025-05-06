@@ -5,7 +5,7 @@ public class Lea : BaseInstruction
     private const int InstMask = 0b1111_0001_1100_0000;
     private const int InstMaskTarget = 0b0100_0001_1100_0000;
 
-    private uint _addressRegister;
+    private readonly uint _addressRegister;
 
     public Lea(ushort opcode, ProcessorContext processorContext) : base(opcode)
     {

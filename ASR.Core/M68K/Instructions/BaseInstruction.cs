@@ -85,11 +85,20 @@ public class BaseInstruction
                 return processorContext.GetPrefetchWord();
             case 0b111 when register == 0b100 && byteCount == 4: // #<data>
                 return processorContext.GetPrefetchLongWord();
-            case 0b111 when register == 0b010: // (d16,PC)
-                // This may have to take into effect that the prefetch is loading data...?
-                return (uint)(processorContext.ProgramCounter + ConvertWordToShort(processorContext.GetPrefetchWord()));
+            case 0b111 when register == 0b010 && byteCount == 1: // (d16,PC)
+                var pcB0111R010 = (processorContext.ProgramCounter - 4);
+                return processorContext.Memory[(uint)(pcB0111R010 + ConvertWordToShort(processorContext.GetPrefetchWord()))];
             case 0b111 when register == 0b011: // (d8,PC,Xn)
-                throw new  NotImplementedException();
+                var pc = processorContext.ProgramCounter - 4; // Not sure why...?
+                var b111XRegisterValue = GetB100ExtensionValue(processorContext);
+                var b111Displacement = ReadSbyteFromPrefetch(processorContext);
+                var b111Address = (uint)(pc + b111XRegisterValue + b111Displacement);
+                return byteCount switch
+                {
+                    1 => ReadByte(processorContext, b111Address & 0xFFFFFF),
+                    4 => ReadLongWord(processorContext, b111Address & 0xFFFFFF),
+                    _ => throw new NotImplementedException()
+                };
             default:
                 throw new NotImplementedException($"Address mode {addressMode:b3} and register {register:b3} is not implemented.");
         }
@@ -132,7 +141,7 @@ public class BaseInstruction
                 return value & 0xFF;
             case 0b101: // (d16,An)
                 var b101Address = (uint)(processorContext.A[register] + ReadShortFromPrefetch(processorContext));
-                WriteLongWord(processorContext, b101Address, value);
+                WriteByte(processorContext, b101Address & 0xFFFFFF, (byte)value);
                 return value;
             case 0b110: // (d8,An,Xn)
                 var b100AnRegister = processorContext.A[register];
