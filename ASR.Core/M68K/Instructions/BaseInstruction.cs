@@ -35,8 +35,6 @@ public class BaseInstruction
         throw new NotImplementedException();
     }
 
-    // Conversion from uint to int is just a cast.
-    // Conversion from int to uint requires math.
     protected uint GetEffective(ushort opcode, CPUContext cpuContext, int byteCount = 0)
     {
         var addressMode = (opcode >> 3) & 0b111;
@@ -68,15 +66,12 @@ public class BaseInstruction
                 var b100XRegisterValue = GetB100ExtensionValue(cpuContext);
                 var b100Displacement = ReadSbyteFromPrefetch(cpuContext);
                 var b100Address = (uint)(b100AnRegister + b100XRegisterValue + b100Displacement);
-                switch (byteCount)
+                return byteCount switch
                 {
-                    case 1:
-                        return ReadByte(cpuContext, b100Address & 0xFFFFFF);
-                    case 4:
-                        return ReadLongWord(cpuContext, b100Address & 0xFFFFFF);
-                    default:
-                        throw new NotImplementedException();
-                }
+                    1 => ReadByte(cpuContext, b100Address & 0xFFFFFF),
+                    4 => ReadLongWord(cpuContext, b100Address & 0xFFFFFF),
+                    _ => throw new NotImplementedException()
+                };
             case 0b111 when register == 0b000: // (xxx).W
                 var b111A = cpuContext.GetPrefetchWord();
                 return b111A >> 15 == 1
@@ -134,7 +129,7 @@ public class BaseInstruction
             case 0b100 when byteCount == 1: // -(An)
                 cpuContext.A[register] -= (uint)(register == 7 ? 2 : 1);
                 WriteByte(cpuContext, cpuContext.A[register] & 0xFFFFFF, value);
-                return value;
+                return value & 0xFF;
             case 0b101: // (d16,An)
                 var b101Address = (uint)(cpuContext.A[register] + ReadShortFromPrefetch(cpuContext));
                 WriteLongWord(cpuContext, b101Address, value);
@@ -156,8 +151,13 @@ public class BaseInstruction
                         throw new NotImplementedException();
                 }
                 return value;
-            case 0b111 when register == 0b000: // (xxx).W
-                throw new NotImplementedException();
+            case 0b111 when register == 0b000 && byteCount == 1: // (xxx).W
+                var b111A = (uint)cpuContext.GetPrefetchWord();
+                b111A = (b111A >> 15 == 1)
+                    ? (b111A | 0xFF0000) & 0xFFFFFF
+                    : b111A;
+                WriteByte(cpuContext, b111A, value);
+                return value & 0xFF;
             case 0b111 when register == 0b001 && byteCount == 1 : // (xxx).L
                 WriteByte(cpuContext, cpuContext.GetPrefetchLongWord() & 0xFFFFFF, value & 0xFF);
                 return value & 0xFF;
@@ -231,9 +231,17 @@ public class BaseInstruction
         return cpuContext.Memory[address];
     }
 
+    protected uint ReadWord(CPUContext cpuContext, uint address)
+    {
+        var result =
+            (uint)((cpuContext.Memory[address + 2] << 8) +
+                   cpuContext.Memory[address + 3]);
+        return result;
+    }
+
     protected uint ReadLongWord(CPUContext cpuContext, uint address)
     {
-        uint result =
+        var result =
             (uint)((cpuContext.Memory[address] << 24) +
             (cpuContext.Memory[address + 1] << 16) +
             (cpuContext.Memory[address + 2] << 8) +
